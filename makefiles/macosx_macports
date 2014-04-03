@@ -1,0 +1,2 @@
+CXX = g++-mp-4.8
+BOOST_CPPFLAGS = -I /opt/local/include
