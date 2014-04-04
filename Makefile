@@ -1,38 +1,36 @@
-INCLUDE_FILE = makefiles/macosx_macports
+# to compile and test pick one makefile from makefiles directory
+# or write a new one for your environment
+ENVIRONMENT_MAKEFILE = makefiles/macosx_macports
 
+#
+# The lines below are not intended to be modified by users
+#
 CXXFLAGS = -std=c++0x -W -Wall -Wextra -pedantic -O3
+CPPFLAGS = -I source
+include $(ENVIRONMENT_MAKEFILE)
 
-EXECUTABLES = \
-  tests/integration/odeint.bexe \
-  tests/integration/cubature.exe
+EXECUTABLES =
+TESTS =
+RESULTS =
+CLEAN =
 
-TESTS = \
-  tests/integration/odeint.btst \
-  tests/integration/cubature.tst
+all: test
 
-include $(INCLUDE_FILE)
-
-%.exe: %.cpp Makefile
-	@echo "CXX "$< && $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(CUBATURE_CPPFLAGS) $(CUBATURE_LDFLAGS) $(CUBATURE_LIBS) $< -o $@
-
-# these require boost
-%.bexe: %.cpp Makefile
-	@echo "CXX "$< && $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(BOOST_CPPFLAGS) $< -o $@
-
+include \
+  tests/integration/project_makefile \
+  tests/dipole/project_makefile
 
 %.tst: %.exe
 	@echo "RUN "$< && ./$< && echo PASS && touch $@
-
-%.btst: %.bexe
-	@echo "RUN "$< && ./$< && echo PASS && touch $@
-
-
-all: test
 
 t: test
 test: $(EXECUTABLES) $(TESTS)
 	@echo && echo "All tests passed."
 
+r: results
+results: $(RESULTS)
+	@echo results
+
 c: clean
-clean:
-	@echo "CLEAN" && rm -f $(EXECUTABLES) $(TESTS)
+clean: results $(CLEAN)
+	@echo clean

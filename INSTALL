@@ -1,2 +1,4 @@
-Requires boost (.org) and cubature from
-http://ab-initio.mit.edu/wiki/index.php/Cubature
+Requirements:
+boost (boost.org)
+cubature (http://ab-initio.mit.edu/wiki/index.php/Cubature)
+volume_range (https://github.com/nasailja/pamhd/blob/master/source/volume_range.hpp)

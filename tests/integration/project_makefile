@@ -1,0 +1,38 @@
+TESTS_INTEGRATION_EXECUTABLES = \
+  tests/integration/odeint.exe \
+  tests/integration/cubature.exe
+
+TESTS_INTEGRATION_TESTS = \
+  tests/integration/odeint.tst \
+  tests/integration/cubature.tst
+
+tests/integration_executables: $(TESTS_INTEGRATION_EXECUTABLES)
+
+tests/integration_tests: $(TESTS_INTEGRATION_TESTS)
+
+tests/integration_clean:
+	@echo "CLEAN tests/integration" && rm -f \
+	  $(TESTS_INTEGRATION_EXECUTABLES) \
+	  $(TESTS_INTEGRATION_TESTS)
+
+EXECUTABLES += tests/integration_executables
+TESTS += tests/integration_tests
+CLEAN += tests/integration_clean
+
+tests/integration/odeint.exe: tests/integration/odeint.cpp
+	@echo "CXX "$< && $(CXX) \
+	  $(CPPFLAGS) \
+	  $(CXXFLAGS) \
+	  $(LDFLAGS) \
+	  $(BOOST_CPPFLAGS) \
+	  $< -o $@
+
+tests/integration/cubature.exe: tests/integration/cubature.cpp
+	@echo "CXX "$< && $(CXX) \
+	  $(CPPFLAGS) \
+	  $(CXXFLAGS) \
+	  $(LDFLAGS) \
+	  $(CUBATURE_CPPFLAGS) \
+	  $(CUBATURE_LDFLAGS) \
+	  $(CUBATURE_LIBS) \
+	  $< -o $@

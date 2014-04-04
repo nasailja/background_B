@@ -1,7 +1,13 @@
 CXX = g++-mp-4.8
 
 BOOST_CPPFLAGS = -I /opt/local/include
+BOOST_LDFLAGS = -L /opt/local/lib
+BOOST_LIBS = -lboost_coroutine-mt -lboost_system-mt
 
 CUBATURE_CPPFLAGS = -I /opt/local/include
 CUBATURE_LDFLAGS = -L /opt/local/lib
 CUBATURE_LIBS = -lpcubature
+
+EIGEN_CPPFLAGS = -I /opt/local/include/eigen3
+
+VOLUME_RANGE_CPPFLAGS = -I /opt/local/include

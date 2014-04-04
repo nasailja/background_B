@@ -1,0 +1,29 @@
+TESTS_DIPOLE_EXECUTABLES = \
+  tests/dipole/plot.exe
+
+tests/dipole_executables: $(TESTS_DIPOLE_EXECUTABLES)
+
+tests/dipole_clean_results:
+	@echo "CLEAN RESULTS tests/dipole" && rm -f \
+	  tests/dipole/plot_*gnuplot \
+	  tests/dipole/plot_*svg
+
+tests/dipole_clean:
+	@echo "CLEAN tests/dipole" && rm -f \
+	  $(TESTS_DIPOLE_EXECUTABLES)
+
+EXECUTABLES += tests/dipole_executables
+RESULTS += tests/dipole_clean_results
+CLEAN += tests/dipole_clean
+
+tests/dipole/plot.exe: tests/dipole/plot.cpp
+	@echo "CXX "$< && $(CXX) \
+	  $(CPPFLAGS) \
+	  $(CXXFLAGS) \
+	  $(LDFLAGS) \
+	  $(BOOST_CPPFLAGS) \
+	  $(BOOST_LDFLAGS) \
+	  $(BOOST_LIBS) \
+	  $(EIGEN_CPPFLAGS) \
+	  $(VOLUME_RANGE_CPPFLAGS) \
+	  $< -o $@
