@@ -1,7 +1,11 @@
 TESTS_DIPOLE_EXECUTABLES = \
   tests/dipole/plot.exe
 
+TESTS_DIPOLE_TESTS =
+
 tests/dipole_executables: $(TESTS_DIPOLE_EXECUTABLES)
+
+tests/dipole_tests: $(TESTS_DIPOLE_TESTS)
 
 tests/dipole_clean_results:
 	@echo "CLEAN RESULTS tests/dipole" && rm -f \
@@ -13,10 +17,11 @@ tests/dipole_clean:
 	  $(TESTS_DIPOLE_EXECUTABLES)
 
 EXECUTABLES += tests/dipole_executables
+TESTS += tests/dipole_tests
 RESULTS += tests/dipole_clean_results
 CLEAN += tests/dipole_clean
 
-tests/dipole/plot.exe: tests/dipole/plot.cpp
+tests/dipole/plot.exe: tests/dipole/plot.cpp source/dipole.hpp
 	@echo "CXX "$< && $(CXX) \
 	  $(CPPFLAGS) \
 	  $(CXXFLAGS) \

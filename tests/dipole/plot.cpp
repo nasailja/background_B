@@ -1,7 +1,7 @@
 /*
 Plots a few tests for dipole code.
 
-Copyright (c) 2014, Ilja Honkonen
+Copyright 2014 Ilja Honkonen
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -36,6 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Eigen/Geometry"
 #include "fstream"
 #include "iostream"
+#include "utility"
+#include "vector"
 
 #include "dipole.hpp"
 #include "volume_range.hpp"
@@ -53,14 +55,19 @@ int main()
 		sample_end{10 * Re, 10 * Re};
 	constexpr size_t samples = 9;
 
-	const Eigen::Vector3d dipole_moment
-		= get_earth_dipole_moment<Eigen::Vector3d>();
-	Eigen::Vector3d dipole_position;
+	std::vector<
+		std::pair<
+			Eigen::Vector3d,
+			Eigen::Vector3d
+		>
+	> dipole_moments_positions{{
+		get_earth_dipole_moment<Eigen::Vector3d>(),
+		{0, 0, 0}
+	}};
 
-	// output can be plotted with gnuplot
+	// plot output with gnuplot
 
 	// plot 1
-	dipole_position << 0, 0, 0;
 	ofstream plot1("plot_y=0_dip=0,0,0.gnuplot", ios_base::out);
 	plot1 <<
 		"set term svg enhanced\n"
@@ -70,8 +77,7 @@ int main()
 	for (const auto& coord: volume_range(sample_start, sample_end, samples)) {
 		const Eigen::Vector3d
 			field = get_dipole_field_0d(
-				dipole_moment,
-				dipole_position,
+				dipole_moments_positions,
 				{coord[0], 0, coord[1]}
 			),
 			nomalized_field = field / field.norm();
@@ -84,7 +90,7 @@ int main()
 	system("gnuplot plot_y=0_dip=0,0,0.gnuplot");
 
 	// plot 2
-	dipole_position << 10 * Re, 1 * Re, 10 * Re;
+	dipole_moments_positions[0].second << 10 * Re, 1 * Re, 10 * Re;
 	ofstream plot2("plot_y=0_dip=10,1,10.gnuplot", ios_base::out);
 	plot2 <<
 		"set term svg enhanced\n"
@@ -94,8 +100,7 @@ int main()
 	for (const auto& coord: volume_range(sample_start, sample_end, samples)) {
 		const Eigen::Vector3d
 			field = get_dipole_field_0d(
-				dipole_moment,
-				dipole_position,
+				dipole_moments_positions,
 				{coord[0], 0, coord[1]}
 			),
 			nomalized_field = field / field.norm();
@@ -108,11 +113,13 @@ int main()
 	system("gnuplot plot_y=0_dip=10,1,10.gnuplot");
 
 	// plot 3
-	dipole_position << 0, 0, 0;
+	dipole_moments_positions[0].second << 0, 0, 0;
 	const Eigen::Matrix3d rotator(
 		Eigen::AngleAxisd(1, Eigen::Vector3d::UnitY())
 		* Eigen::AngleAxisd(1, Eigen::Vector3d::UnitZ())
 	);
+	dipole_moments_positions[0].first
+		= (rotator * dipole_moments_positions[0].first).eval();
 	ofstream plot3("plot_y=0_rot.gnuplot", ios_base::out);
 	plot3 <<
 		"set term svg enhanced\n"
@@ -122,8 +129,7 @@ int main()
 	for (const auto& coord: volume_range(sample_start, sample_end, samples)) {
 		const Eigen::Vector3d
 			field = get_dipole_field_0d(
-				(rotator * dipole_moment).eval(),
-				dipole_position,
+				dipole_moments_positions,
 				{coord[0], 0, coord[1]}
 			),
 			nomalized_field = field / field.norm();
@@ -134,6 +140,35 @@ int main()
 	plot3 << "end" << endl;
 	plot3.close();
 	system("gnuplot plot_y=0_rot.gnuplot");
+
+	// plot 4
+	dipole_moments_positions[0].second << -7 * Re, 0, 0;
+	dipole_moments_positions.push_back({
+		get_earth_dipole_moment<Eigen::Vector3d>(),
+		{7 * Re, 0, 0}
+	});
+	ofstream plot4("plot_y=0_rot_2.gnuplot", ios_base::out);
+	plot4 <<
+		"set term svg enhanced\n"
+		"set output 'plot_y=0_rot_2.svg'\n"
+		"set size square\n"
+		"set xrange [-11 : 11]\n"
+		"set yrange [-11 : 11]\n"
+		"plot '-' using 1:2:3:4 with vectors title ''\n";
+	for (const auto& coord: volume_range(sample_start, sample_end, 2 * samples)) {
+		const Eigen::Vector3d
+			field = get_dipole_field_0d(
+				dipole_moments_positions,
+				{coord[0], 0, coord[1]}
+			),
+			nomalized_field = field / field.norm();
+
+		plot4 << coord[0] / Re << " " << coord[1] / Re << " "
+			<< nomalized_field[0] << " " << nomalized_field[2] << "\n";
+	}
+	plot4 << "end" << endl;
+	plot4.close();
+	system("gnuplot plot_y=0_rot_2.gnuplot");
 
 	return EXIT_SUCCESS;
 }

@@ -2,3 +2,4 @@ Requirements:
 boost (boost.org)
 cubature (http://ab-initio.mit.edu/wiki/index.php/Cubature)
 volume_range (https://github.com/nasailja/pamhd/blob/master/source/volume_range.hpp)
+Eigen (http://eigen.tuxfamily.org/)

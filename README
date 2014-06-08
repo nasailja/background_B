@@ -1,0 +1,2 @@
+Functions for calculating integrals of vector fields
+of N dimensions over M dimensions where M <= N.

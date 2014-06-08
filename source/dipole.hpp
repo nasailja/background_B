@@ -1,39 +1,29 @@
 /*
 Dipolar field function(s).
 
-Copyright (c) 2014, Ilja Honkonen
+Copyright 2014 Ilja Honkonen
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
 
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
 
-* Redistributions in binary form must reproduce the above copyright notice, this
-  list of conditions and the following disclaimer in the documentation and/or
-  other materials provided with the distribution.
-
-* Neither the names of the copyright holders nor the names of their contributors
-  may be used to endorse or promote products derived from this software
-  without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef BACKGROUND_B_DIPOLE_HPP
 #define BACKGROUND_B_DIPOLE_HPP
 
 #include "limits"
+
+#include "cubature.h"
 
 namespace background_B {
 
@@ -47,7 +37,7 @@ Assumes Vector_T is a 3d Eigen vector or similar.
 Example usage:
 \verbatim
 const Eigen::Vector3d
-	field = get_dipole_field(
+	field = get_dipole_field_0d(
 		get_earth_dipole_moment<Eigen::Vector3d>(),
 		{0, 0, 0},
 		{6.3712e7, 0, 0} // at 10 Earth radii in +x
@@ -55,8 +45,7 @@ const Eigen::Vector3d
 \endverbatim
 */
 template <class Vector_T> Vector_T get_dipole_field_0d(
-	const Vector_T& dipole_moment,
-	const Vector_T& dipole_position,
+	const std::vector<std::pair<Vector_T, Vector_T>>& dipole_moments_positions,
 	const Vector_T& field_position
 ) {
 	static_assert(
@@ -64,27 +53,131 @@ template <class Vector_T> Vector_T get_dipole_field_0d(
 		"ERROR: Only 3 component vectors supported"
 	);
 
+	Vector_T ret_val;
+	ret_val.setZero();
+
 	constexpr double permeability = 1.256637061e-6;
 
-	const Vector_T r = field_position - dipole_position;
+	for (const auto dip_mom_pos: dipole_moments_positions) {
 
-	bool far_enough = false;
-	for (size_t i = 0; i < r.size(); i++) {
-		if (fabs(r[i]) > std::numeric_limits<typename Vector_T::Scalar>::epsilon()) {
-			far_enough = true;
-			break;
+		const Vector_T r = field_position - dip_mom_pos.second;
+
+		bool far_enough = false;
+		for (size_t i = 0; i < r.size(); i++) {
+			if (fabs(r[i]) > std::numeric_limits<typename Vector_T::Scalar>::epsilon()) {
+				far_enough = true;
+				break;
+			}
 		}
-	}
-	if (not far_enough) {
-		return 2.0 / 3.0 * permeability * dipole_moment;
+		if (not far_enough) {
+			ret_val += 2.0 / 3.0 * permeability * dip_mom_pos.first;
+			continue;
+		}
+
+		const double r3 = r.norm() * r.squaredNorm();
+		const Vector_T
+			r_unit = r / r.norm(),
+			projected_dip_mom = dip_mom_pos.first.dot(r_unit) * r_unit;
+
+		ret_val += 1e-7 * (3 * projected_dip_mom - dip_mom_pos.first) / r3;
+
 	}
 
-	const double r3 = r.norm() * r.squaredNorm();
-	const Vector_T
-		r_unit = r / r.norm(),
-		projected_dipole_moment = dipole_moment.dot(r_unit) * r_unit;
-	return 1e-7 * (3 * projected_dipole_moment - dipole_moment) / r3;
+	return ret_val;
 }
+
+
+/*!
+Returns magnetic field from a point dipole.
+
+Returned value is the average value on the given line
+from given dipole moment and position.
+line_dimension is the dimension along which the line is.
+Assumes Vector_T is a 3d Eigen vector or similar.
+
+See http://ab-initio.mit.edu/wiki/index.php/Cubature
+for help on maxEval, reqAbsError, reqRelError
+
+Example usage:
+\verbatim
+TODO: const Eigen::Vector3d
+	field = get_dipole_field(
+		get_earth_dipole_moment<Eigen::Vector3d>(),
+		{0, 0, 0},
+		{6.3712e7, 0, 0} // at 10 Earth radii in +x
+	);
+\endverbatim
+*/
+template <class Vector_T> Vector_T get_dipole_field_1d(
+	// pcubature requires non-const data
+	std::vector<std::pair<Vector_T, Vector_T>>& dipole_moments_positions,
+	const Vector_T& line_start,
+	const typename Vector_T::Scalar line_length,
+	const size_t line_dimension,
+	const size_t maxEval = 0,
+	const double reqAbsError = 0,
+	const double reqRelError = 1e-6
+) {
+	static_assert(
+		Vector_T::SizeAtCompileTime == 3,
+		"ERROR: Only 3 component vectors supported"
+	);
+
+	if (line_dimension > 3) {
+		std::cerr <<  __FILE__ << "(" << __LINE__ << "): "
+			<< "Line dimension must be 0, 1 or 2: " << line_dimension
+			<< std::endl;
+		abort();
+	}
+
+	Vector_T line_end(line_start);
+	line_end[line_dimension] += line_length;
+
+	Vector_T integral, error;
+	if (
+		pcubature(
+			Vector_T::SizeAtCompileTime,
+			[](
+				unsigned,
+				const double* const x,
+				void* external_data,
+				unsigned,
+				double* fval
+			){
+				const Eigen::Map<const Vector_T> pos(x);
+				Eigen::Map<Vector_T> point_value(fval);
+
+				point_value = get_dipole_field_0d<Vector_T>(
+					*(static_cast<
+						std::vector<std::pair<Vector_T, Vector_T>>*
+					>(external_data)),
+					pos
+				);
+				return 0;
+			},
+			static_cast<void*>(&dipole_moments_positions),
+			Vector_T::SizeAtCompileTime,
+			line_start.data(),
+			line_end.data(),
+			maxEval,
+			reqAbsError,
+			reqRelError,
+			ERROR_LINF,
+			integral.data(),
+			error.data()
+		) != 0
+	) {
+		std::cerr <<  __FILE__ << "(" << __LINE__ << "): "
+			<< "Could not calculate line integral of a dipole from "
+			<< line_start << " to " << line_end
+			<< std::endl;
+		abort();
+	}
+
+	std::cout << "returning" << std::endl << integral << std::endl;
+	return integral;
+}
+
 
 /*!
 Returns the Earth's dipole moment pointing in -Z direction.

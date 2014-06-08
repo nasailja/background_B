@@ -1,10 +1,14 @@
 TESTS_INTEGRATION_EXECUTABLES = \
   tests/integration/odeint.exe \
-  tests/integration/cubature.exe
+  tests/integration/cubature.exe \
+  tests/integration/cubature_multidim.exe \
+  tests/integration/eigen_cubature.exe
 
 TESTS_INTEGRATION_TESTS = \
   tests/integration/odeint.tst \
-  tests/integration/cubature.tst
+  tests/integration/cubature.tst \
+  tests/integration/cubature_multidim.tst \
+  tests/integration/eigen_cubature.tst
 
 tests/integration_executables: $(TESTS_INTEGRATION_EXECUTABLES)
 
@@ -35,4 +39,25 @@ tests/integration/cubature.exe: tests/integration/cubature.cpp
 	  $(CUBATURE_CPPFLAGS) \
 	  $(CUBATURE_LDFLAGS) \
 	  $(CUBATURE_LIBS) \
+	  $< -o $@
+
+tests/integration/cubature_multidim.exe: tests/integration/cubature_multidim.cpp
+	@echo "CXX "$< && $(CXX) \
+	  $(CPPFLAGS) \
+	  $(CXXFLAGS) \
+	  $(LDFLAGS) \
+	  $(CUBATURE_CPPFLAGS) \
+	  $(CUBATURE_LDFLAGS) \
+	  $(CUBATURE_LIBS) \
+	  $< -o $@
+
+tests/integration/eigen_cubature.exe: tests/integration/eigen_cubature.cpp
+	@echo "CXX "$< && $(CXX) \
+	  $(CPPFLAGS) \
+	  $(CXXFLAGS) \
+	  $(LDFLAGS) \
+	  $(CUBATURE_CPPFLAGS) \
+	  $(CUBATURE_LDFLAGS) \
+	  $(CUBATURE_LIBS) \
+	  $(EIGEN_CPPFLAGS) \
 	  $< -o $@

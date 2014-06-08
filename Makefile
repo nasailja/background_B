@@ -29,8 +29,6 @@ test: $(EXECUTABLES) $(TESTS)
 
 r: results
 results: $(RESULTS)
-	@echo results
 
 c: clean
 clean: results $(CLEAN)
-	@echo clean

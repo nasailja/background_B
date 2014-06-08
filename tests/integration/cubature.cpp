@@ -1,7 +1,7 @@
 /*
 Tests numerical integration using cubature.
 
-Copyright (c) 2014, Ilja Honkonen
+Copyright 2014 Ilja Honkonen
 All rights reserved.
 
 This program is free software: you can redistribute it and/or modify
@@ -39,7 +39,9 @@ int main()
 
 		double
 			integral = std::numeric_limits<double>::quiet_NaN(),
-			error = std::numeric_limits<double>::quiet_NaN();
+			error = std::numeric_limits<double>::quiet_NaN(),
+			// test giving external data to pcubature
+			value = 3;
 
 		if (
 			pcubature(
@@ -47,14 +49,14 @@ int main()
 				[](
 					unsigned,
 					const double*,
-					void*,
+					void* external_data,
 					unsigned,
 					double* fval
 				){
-					*fval = 3;
+					*fval = *(static_cast<double*>(external_data));
 					return 0;
 				},
-				NULL,
+				static_cast<void*>(&value),
 				1,
 				&start,
 				&end, 
