@@ -1,7 +1,13 @@
 TESTS_DIPOLE_EXECUTABLES = \
-  tests/dipole/plot.exe
+  tests/dipole/plot.exe \
+  tests/dipole/1d.exe \
+  tests/dipole/2d.exe \
+  tests/dipole/3d.exe
 
-TESTS_DIPOLE_TESTS =
+TESTS_DIPOLE_TESTS = \
+  tests/dipole/1d.tst \
+  tests/dipole/2d.tst \
+  tests/dipole/3d.tst
 
 tests/dipole_executables: $(TESTS_DIPOLE_EXECUTABLES)
 
@@ -14,7 +20,8 @@ tests/dipole_clean_results:
 
 tests/dipole_clean:
 	@echo "CLEAN tests/dipole" && rm -f \
-	  $(TESTS_DIPOLE_EXECUTABLES)
+	  $(TESTS_DIPOLE_EXECUTABLES) \
+	  $(TESTS_DIPOLE_TESTS)
 
 EXECUTABLES += tests/dipole_executables
 TESTS += tests/dipole_tests
@@ -32,3 +39,22 @@ tests/dipole/plot.exe: tests/dipole/plot.cpp source/dipole.hpp
 	  $(EIGEN_CPPFLAGS) \
 	  $(VOLUME_RANGE_CPPFLAGS) \
 	  $< -o $@
+
+
+TESTS_DIPOLE_AVERAGING_COMMON_CXX_ARGS = \
+	  $(CPPFLAGS) \
+	  $(CXXFLAGS) \
+	  $(LDFLAGS) \
+	  $(CUBATURE_CPPFLAGS) \
+	  $(CUBATURE_LDFLAGS) \
+	  $(CUBATURE_LIBS) \
+	  $(EIGEN_CPPFLAGS)
+
+tests/dipole/1d.exe: tests/dipole/1d.cpp source/dipole.hpp
+	@echo "CXX "$< && $(CXX) $(TESTS_DIPOLE_AVERAGING_COMMON_CXX_ARGS) $< -o $@
+
+tests/dipole/2d.exe: tests/dipole/2d.cpp source/dipole.hpp
+	@echo "CXX "$< && $(CXX) $(TESTS_DIPOLE_AVERAGING_COMMON_CXX_ARGS) $< -o $@
+
+tests/dipole/3d.exe: tests/dipole/3d.cpp source/dipole.hpp
+	@echo "CXX "$< && $(CXX) $(TESTS_DIPOLE_AVERAGING_COMMON_CXX_ARGS) $< -o $@

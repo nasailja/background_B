@@ -1,5 +1,5 @@
 all:
-	@make tests/dipole_executables -C ../..
+	@make tests/dipole_tests -C ../..
 
 r: results
 results:
