@@ -1,3 +1,3 @@
-Functions for calculating averages of vector fields
-of N dimensions over M dimensions where M <= N,
+Functions for calculating averages of point dipole vector
+fields of N dimensions over M dimensions where M <= N,
 specifically for the magnetic field of magnetized planets.
