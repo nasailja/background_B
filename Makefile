@@ -9,6 +9,7 @@ CXXFLAGS = -std=c++0x -W -Wall -Wextra -pedantic -O3
 CPPFLAGS = -I source
 include $(ENVIRONMENT_MAKEFILE)
 
+# filled by project makefiles
 EXECUTABLES =
 TESTS =
 RESULTS =
