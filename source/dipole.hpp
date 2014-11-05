@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define BACKGROUND_B_DIPOLE_HPP
 
 #include "limits"
+#include "vector"
 
 #include "cubature.h"
 
