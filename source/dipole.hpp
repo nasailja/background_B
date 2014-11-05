@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifndef BACKGROUND_B_DIPOLE_HPP
 #define BACKGROUND_B_DIPOLE_HPP
 
+#include "array"
 #include "limits"
 #include "vector"
 
