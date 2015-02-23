@@ -25,6 +25,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "limits"
 #include "vector"
 
+#include "Eigen/Core"
+
 #include "cubature.h"
 
 /*!
