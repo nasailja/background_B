@@ -84,7 +84,7 @@ template <class Vector_T> Vector_T get_dipole_field_0d(
 		const Vector_T r = field_position - dip_mom_pos.second;
 
 		bool far_enough = false;
-		for (size_t i = 0; i < r.size(); i++) {
+		for (size_t i = 0; i < size_t(r.size()); i++) {
 			if (fabs(r[i]) > std::numeric_limits<typename Vector_T::Scalar>::epsilon()) {
 				far_enough = true;
 				break;
